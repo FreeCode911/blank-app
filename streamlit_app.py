@@ -95,25 +95,6 @@ st.set_page_config(
 st.title("🎧 YouTube to MP3 Converter")
 st.caption("Stream YouTube audio as MP3 - UI + API")
 
-# API documentation section
-with st.expander("API Documentation"):
-    st.subheader("API Endpoint")
-    st.code("GET http://localhost:5000/convert?url=YOUTUBE_URL")
-    
-    st.subheader("Example Usage")
-    st.code("""
-    # Python example
-    import requests
-    
-    url = "http://localhost:5000/convert?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    response = requests.get(url)
-    
-    with open("audio.mp3", "wb") as f:
-        f.write(response.content)
-    """)
-    
-    st.subheader("cURL Example")
-    st.code("curl -OJ 'http://localhost:5000/convert?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ'")
 
 # UI conversion section
 with st.form("converter_form"):
