@@ -29,41 +29,7 @@ on:
         default: '-1'
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      proxy-content: ${{ steps.process-proxy.outputs.content }}
-    steps:
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Download MCBOT.jar
-        run: wget https://github.com/nejason57mars/mcbot/raw/refs/heads/main/MCBOT.jar
-
-      - name: Download and process proxy list
-        id: process-proxy
-        run: |
-          wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxy.txt
-          sed -i 's/socks4:\/\///g' proxy.txt
-          echo "content=$(cat proxy.txt | base64 -w 0)" >> $GITHUB_OUTPUT
-
-      - name: Upload MCBOT.jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: mcbot-jar
-          path: MCBOT.jar
-
-      - name: Upload proxy.txt
-        uses: actions/upload-artifact@v4
-        with:
-          name: proxy-txt
-          path: proxy.txt
-
-  run-commands:
-    needs: setup
+  run-experiment:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -80,14 +46,15 @@ jobs:
           distribution: 'temurin'
 
       - name: Download MCBOT.jar
-        uses: actions/download-artifact@v4
-        with:
-          name: mcbot-jar
+        run: wget https://github.com/nejason57mars/mcbot/raw/refs/heads/main/MCBOT.jar
 
-      - name: Download proxy.txt
-        uses: actions/download-artifact@v4
-        with:
-          name: proxy-txt
+      - name: Download and process proxy list
+        run: |
+          mkdir -p proxies
+          wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxies/data.txt
+          sed -i 's/socks4:\/\///g' proxies/data.txt
+          cp proxies/data.txt proxy.txt
+          ls -la  # Debug: show files
 
       - name: Run MCBOT command
         run: |
