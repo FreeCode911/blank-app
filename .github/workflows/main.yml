@@ -1,64 +1,74 @@
 name: MCBOT Concurrent Experiment
 
-on:
-  workflow_dispatch:
-    inputs:
-      server1:
-        description: 'First server address (e.g., play.skyron.fun:24251)'
-        required: true
-        default: 'play.skyron.fun:24251'
-      server2:
-        description: 'Second server address (e.g., 79.127.236.116:25565)'
-        required: true
-        default: '79.127.236.116:25565'
-      instances:
-        description: 'Number of instances per command'
-        required: true
-        default: '4'
-      threads:
-        description: 'Number of threads per bot'
-        required: true
-        default: '340'
-      join_delay:
-        description: 'Join delay in milliseconds'
-        required: true
-        default: '300'
-      proxy_mode:
-        description: 'Proxy mode (-1 for random, 0 for sequential)'
-        required: true
+on:  
+  workflow_dispatch:  
+    inputs:  
+      server1:  
+        description: 'First server address (e.g., play.skyron.fun:24251)'  
+        required: true  
+        default: 'play.skyron.fun:24251'  
+      server2:  
+        description: 'Second server address (e.g., 79.127.236.116:25565)'  
+        required: true  
+        default: '79.127.236.116:25565'  
+      instances:  
+        description: 'Number of instances per command'  
+        required: true  
+        default: '4'  
+      threads:  
+        description: 'Number of threads per bot'  
+        required: true  
+        default: '340'  
+      join_delay:  
+        description: 'Join delay in milliseconds'  
+        required: true  
+        default: '300'  
+      proxy_mode:  
+        description: 'Proxy mode (-1 for random, 0 for sequential)'  
+        required: true  
         default: '-1'
 
-jobs:
-  run-experiment:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        command: [
-          "${{ github.event.inputs.server1 }}",
-          "${{ github.event.inputs.server2 }}"
-        ]
-        instance: ${{ fromJSON(format('[1,{0}]', github.event.inputs.instances)) }}
-    steps:
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
+jobs:  
+  generate-matrix:  
+    runs-on: ubuntu-latest  
+    outputs:  
+      matrix: ${{ steps.set-matrix.outputs.matrix }}  
+    steps:  
+      - id: set-matrix  
+        run: |  
+          instances=${{ github.event.inputs.instances }}  
+          # Create a JSON array [1, 2, ..., N]  
+          matrix=$(seq 1 $instances | jq -R . | jq -s -c .)  
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+  run-experiment:  
+    needs: generate-matrix  
+    runs-on: ubuntu-latest  
+    strategy:  
+      matrix:  
+        command: ["${{ github.event.inputs.server1 }}", "${{ github.event.inputs.server2 }}"]  
+        instance: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}  
+    steps:  
+      - name: Set up JDK  
+        uses: actions/setup-java@v4  
+        with:  
+          java-version: '17'  
           distribution: 'temurin'
 
-      - name: Download MCBOT.jar
+      - name: Download MCBOT.jar  
         run: wget https://github.com/nejason57mars/mcbot/raw/refs/heads/main/MCBOT.jar
 
-      - name: Download and process proxy list
-        run: |
-          mkdir -p proxies
-          wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxies/data.txt
+      - name: Download and process proxy list  
+        run: |  
+          mkdir -p proxies  
+          wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxies/data.txt  
           sed -i 's/socks4:\/\///g' proxies/data.txt  
-          cp proxies/data.txt proxies.txt  # Changed from proxy.txt to proxies.txt  
-          ls -la  # Debug: show files
+          cp proxies/data.txt proxies.txt  
+          ls -la
 
-      - name: Run MCBOT command
-        run: |
-          chmod +x MCBOT.jar
-          echo "Starting MCBOT instance ${{ matrix.instance }} for ${{ matrix.command }}"
-          echo "Parameters: threads=${{ github.event.inputs.threads }}, join_delay=${{ github.event.inputs.join_delay }}, proxy_mode=${{ github.event.inputs.proxy_mode }}"
-          java -jar MCBOT.jar ${{ matrix.command }} ${{ github.event.inputs.threads }} join ${{ github.event.inputs.join_delay }} ${{ github.event.inputs.proxy_mode }}
+      - name: Run MCBOT command  
+        run: |  
+          chmod +x MCBOT.jar  
+          echo "Starting MCBOT instance ${{ matrix.instance }} for ${{ matrix.command }}"  
+          echo "Parameters: threads=${{ github.event.inputs.threads }}, join_delay=${{ github.event.inputs.join_delay }}, proxy_mode=${{ github.event.inputs.proxy_mode }}"  
+          java -jar MCBOT.jar ${{ matrix.command }} ${{ github.event.inputs.threads }} join ${{ github.event.inputs.join_delay }} ${{ github.event.inputs.proxy_mode }}  
