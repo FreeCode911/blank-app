@@ -2,6 +2,19 @@ name: MCBOT Concurrent Experiment
 
 on:
   workflow_dispatch:
+    inputs:
+      server1:
+        description: 'First server address (e.g., play.skyron.fun:24251)'
+        required: true
+        default: 'play.skyron.fun:24251'
+      server2:
+        description: 'Second server address (e.g., 79.127.236.116:25565)'
+        required: true
+        default: '79.127.236.116:25565'
+      instances:
+        description: 'Number of instances per command'
+        required: true
+        default: '4'
 
 jobs:
   setup:
@@ -43,10 +56,10 @@ jobs:
     strategy:
       matrix:
         command: [
-          "play.skyron.fun:24251",
-          "79.127.236.116:25565"
+          "${{ github.event.inputs.server1 }}",
+          "${{ github.event.inputs.server2 }}"
         ]
-        instance: [1, 2, 3, 4]  # Run 4 instances of each command
+        instance: ${{ fromJSON(format('[1,{0}]', github.event.inputs.instances)) }}
     steps:
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -67,4 +80,5 @@ jobs:
       - name: Run MCBOT command
         run: |
           chmod +x MCBOT.jar
+          echo "Running against ${{ matrix.command }} (instance ${{ matrix.instance }})"
           java -jar MCBOT.jar ${{ matrix.command }} 340 join 300 -1
