@@ -61,8 +61,8 @@ jobs:
       - name: Download and process proxy list  
         run: |  
           mkdir -p proxies  
-          wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxies/data.txt  
-          sed -i 's/socks4:\/\///g' proxies/data.txt  
+          wget https://github.com/ProxyScrape/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks5/data.txt -O proxies/data.txt  
+          sed -i 's/socks5:\/\///g' proxies/data.txt  
           cp proxies/data.txt proxies.txt  
           ls -la
 
