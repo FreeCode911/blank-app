@@ -15,6 +15,18 @@ on:
         description: 'Number of instances per command'
         required: true
         default: '4'
+      threads:
+        description: 'Number of threads per bot'
+        required: true
+        default: '340'
+      join_delay:
+        description: 'Join delay in milliseconds'
+        required: true
+        default: '300'
+      proxy_mode:
+        description: 'Proxy mode (-1 for random, 0 for sequential)'
+        required: true
+        default: '-1'
 
 jobs:
   setup:
@@ -23,7 +35,7 @@ jobs:
       proxy-content: ${{ steps.process-proxy.outputs.content }}
     steps:
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -39,13 +51,13 @@ jobs:
           echo "content=$(cat proxy.txt | base64 -w 0)" >> $GITHUB_OUTPUT
 
       - name: Upload MCBOT.jar
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mcbot-jar
           path: MCBOT.jar
 
       - name: Upload proxy.txt
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: proxy-txt
           path: proxy.txt
@@ -62,23 +74,24 @@ jobs:
         instance: ${{ fromJSON(format('[1,{0}]', github.event.inputs.instances)) }}
     steps:
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Download MCBOT.jar
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mcbot-jar
 
       - name: Download proxy.txt
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: proxy-txt
 
       - name: Run MCBOT command
         run: |
           chmod +x MCBOT.jar
-          echo "Running against ${{ matrix.command }} (instance ${{ matrix.instance }})"
-          java -jar MCBOT.jar ${{ matrix.command }} 340 join 300 -1
+          echo "Starting MCBOT instance ${{ matrix.instance }} for ${{ matrix.command }}"
+          echo "Parameters: threads=${{ github.event.inputs.threads }}, join_delay=${{ github.event.inputs.join_delay }}, proxy_mode=${{ github.event.inputs.proxy_mode }}"
+          java -jar MCBOT.jar ${{ matrix.command }} ${{ github.event.inputs.threads }} join ${{ github.event.inputs.join_delay }} ${{ github.event.inputs.proxy_mode }}
