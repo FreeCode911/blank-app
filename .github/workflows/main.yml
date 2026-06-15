@@ -27,7 +27,10 @@ on:
         description: 'Proxy mode (-1 for random, 0 for sequential)'  
         required: true  
         default: '-1'
-
+      methods:  
+        description: 'methods'  
+        required: true  
+        default: 'join'
 jobs:  
   generate-matrix:  
     runs-on: ubuntu-latest  
@@ -71,4 +74,4 @@ jobs:
           chmod +x MCBOT.jar  
           echo "Starting MCBOT instance ${{ matrix.instance }} for ${{ matrix.command }}"  
           echo "Parameters: threads=${{ github.event.inputs.threads }}, join_delay=${{ github.event.inputs.join_delay }}, proxy_mode=${{ github.event.inputs.proxy_mode }}"  
-          java -jar MCBOT.jar ${{ matrix.command }} ${{ github.event.inputs.threads }} join ${{ github.event.inputs.join_delay }} ${{ github.event.inputs.proxy_mode }}  
+          java -jar MCBOT.jar ${{ matrix.command }} ${{ github.event.inputs.threads }} ${{ github.event.inputs.methods }} ${{ github.event.inputs.join_delay }} ${{ github.event.inputs.proxy_mode }}  
