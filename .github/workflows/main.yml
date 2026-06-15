@@ -52,8 +52,8 @@ jobs:
         run: |
           mkdir -p proxies
           wget https://github.com/proxifly/free-proxy-list/raw/refs/heads/main/proxies/protocols/socks4/data.txt -O proxies/data.txt
-          sed -i 's/socks4:\/\///g' proxies/data.txt
-          cp proxies/data.txt proxy.txt
+          sed -i 's/socks4:\/\///g' proxies/data.txt  
+          cp proxies/data.txt proxies.txt  # Changed from proxy.txt to proxies.txt  
           ls -la  # Debug: show files
 
       - name: Run MCBOT command
